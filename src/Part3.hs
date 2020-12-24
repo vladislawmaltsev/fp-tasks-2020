@@ -63,11 +63,11 @@ allDivisors n (x:xs) acc =
 -- Подсчитать произведение количеств букв i в словах из
 -- заданной строки (списка символов)
 prob22 :: String -> Integer
-prob22 "" = 0
-prob22 text = product (map (max 1 . count 'i') (words text))
-
-count :: Eq a => a -> [a] -> Integer
-count item = fromIntegral . length . filter (== item)
+prob22 []    = 0
+prob22 input = product $ (map lettersCount) (words input)
+    where
+        lettersCount :: String -> Integer
+        lettersCount word = toInteger $ length (filter (=='i') word)
 
 ------------------------------------------------------------
 -- PROBLEM #23
@@ -78,27 +78,31 @@ count item = fromIntegral . length . filter (== item)
 -- M > 0 и N > 0. Если M > N, то вернуть символы из W в
 -- обратном порядке. Нумерация символов с единицы.
 prob23 :: String -> Maybe String
-prob23 str
-  | n >= len || m >= len = Nothing
-  | m < n = Just (reverse (slice m n))
-  | otherwise = Just (slice n m)
-  where
-    ((n, m), text) = rangeAndText str
-    len = length str
-    slice a b = take (b - a + 1) (drop a text)
+prob23 inputString = return inputString >>= parseInput >>= getSlice
+    where
+        parseInput :: String -> Maybe ParseResult
+        parseInput input = do
+            let left = read $ takeWhile (/= '-') input
+            let right = read $ takeWhile (/= ':') $ tail $ dropWhile (/= '-') input
+            let string = tail $ dropWhile (/= ' ') input
+            return ParseResult { leftBound = left, rightBound = right, stringToSlice = string }
 
-rangeAndText :: String -> ((Int, Int), String)
-rangeAndText str = ((read a, read b), text)
-  where
-    (a, b) = splitOn '-' range
-    (range, text) = splitOn ':' str
+        getSlice :: ParseResult -> Maybe String
+        getSlice (ParseResult left right string)
+            | left > length string || right > length string = Nothing
+            | right >= left = Just $ leftToRightSlice left right
+            | otherwise = Just $ reverse $ leftToRightSlice right left
+            where
+                leftToRightSlice :: Int -> Int -> String
+                leftToRightSlice l r = take r $ drop (l - 1) string
 
-splitOn :: Char -> String -> (String, String)
-splitOn symbol = iter ""
-  where
-    iter :: String -> String -> (String, String)
-    iter acc "" = error "No such symbol"
-    iter acc (x : xs) = if symbol == x then (reverse acc, xs) else iter (x : acc) xs
+data ParseResult = ParseResult
+    {
+        leftBound :: Int,
+        rightBound :: Int,
+        stringToSlice :: String
+    }
+
 
 ------------------------------------------------------------
 -- PROBLEM #24
@@ -107,7 +111,13 @@ splitOn symbol = iter ""
 -- представить как сумму чисел от 1 до какого-то K
 -- (1 <= N <= 10^10)
 prob24 :: Integer -> Bool
-prob24 = error "Implement me!"
+prob24 number = iterTriangle 1 0
+    where
+        iterTriangle :: Integer -> Integer -> Bool
+        iterTriangle currentNum currentSum
+            | currentSum == number = True
+            | currentSum > number = False
+            | otherwise = iterTriangle (succ currentNum) (currentSum + currentNum)
 
 ------------------------------------------------------------
 -- PROBLEM #25
@@ -115,7 +125,14 @@ prob24 = error "Implement me!"
 -- Проверить, что запись числа является палиндромом (т.е.
 -- читается одинаково слева направо и справа налево)
 prob25 :: Integer -> Bool
-prob25 = error "Implement me!"
+prob25 number = getDigits number == (reverse . getDigits) number
+    where
+        getDigits :: Integer -> [Integer]
+        getDigits 0 = [0]
+        getDigits current = digitsInternal current
+            where
+                digitsInternal 0 = []
+                digitsInternal x = x `mod` 10 : digitsInternal (x `div` 10)
 
 ------------------------------------------------------------
 -- PROBLEM #26
@@ -124,7 +141,7 @@ prob25 = error "Implement me!"
 -- сумма делителей одного (без учёта самого числа) равна
 -- другому, и наоборот
 prob26 :: Integer -> Integer -> Bool
-prob26 = error "Implement me!"
+prob26 left right = sum (divisors left) == left + right && sum (divisors right) == left + right
 
 ------------------------------------------------------------
 -- PROBLEM #27
