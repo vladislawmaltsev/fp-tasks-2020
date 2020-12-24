@@ -5,7 +5,14 @@ module Part3 where
 --
 -- Проверить, является ли число N простым (1 <= N <= 10^9)
 prob18 :: Integer -> Bool
-prob18 = error "Implement me!"
+prob18 1 = False
+prob18 m = isPrime m 2
+  where
+    isPrime :: Integer -> Integer -> Bool
+    isPrime m i
+      | i * i > m = True
+      | m `rem` i == 0 = False
+      | otherwise = isPrime m (i + 1)
 
 ------------------------------------------------------------
 -- PROBLEM #19
@@ -23,7 +30,7 @@ prob19 = error "Implement me!"
 -- Совершенное число равно сумме своих делителей (меньших
 -- самого числа)
 prob20 :: Integer -> Bool
-prob20 = error "Implement me!"
+prob20 n = 2 * n == sum (divisors n)
 
 ------------------------------------------------------------
 -- PROBLEM #21
@@ -31,7 +38,24 @@ prob20 = error "Implement me!"
 -- Вернуть список всех делителей числа N (1<=N<=10^10) в
 -- порядке возрастания
 prob21 :: Integer -> [Integer]
-prob21 = error "Implement me!"
+prob21 = divisors
+
+sqrt' :: Integral a => a -> a
+sqrt' x = round (sqrt (fromIntegral x))
+
+divisors :: Integer -> [Integer]
+divisors n = halfDivisors ++ allDivisors n halfDivisors []
+  where
+    halfDivisors = filter isDivisor [1..(sqrt' n)]
+    isDivisor candidate = n `mod` candidate == 0
+
+allDivisors :: Integer -> [Integer] -> [Integer] -> [Integer]
+allDivisors n [] acc = acc
+allDivisors n (x:xs) acc =
+  let a = (n `div` x)
+  in if a == x
+    then allDivisors n xs acc
+    else allDivisors n xs (a : acc)
 
 ------------------------------------------------------------
 -- PROBLEM #22
@@ -39,7 +63,11 @@ prob21 = error "Implement me!"
 -- Подсчитать произведение количеств букв i в словах из
 -- заданной строки (списка символов)
 prob22 :: String -> Integer
-prob22 = error "Implement me!"
+prob22 "" = 0
+prob22 text = product (map (max 1 . count 'i') (words text))
+
+count :: Eq a => a -> [a] -> Integer
+count item = fromIntegral . length . filter (== item)
 
 ------------------------------------------------------------
 -- PROBLEM #23
@@ -50,7 +78,27 @@ prob22 = error "Implement me!"
 -- M > 0 и N > 0. Если M > N, то вернуть символы из W в
 -- обратном порядке. Нумерация символов с единицы.
 prob23 :: String -> Maybe String
-prob23 = error "Implement me!"
+prob23 str
+  | n >= len || m >= len = Nothing
+  | m < n = Just (reverse (slice m n))
+  | otherwise = Just (slice n m)
+  where
+    ((n, m), text) = rangeAndText str
+    len = length str
+    slice a b = take (b - a + 1) (drop a text)
+
+rangeAndText :: String -> ((Int, Int), String)
+rangeAndText str = ((read a, read b), text)
+  where
+    (a, b) = splitOn '-' range
+    (range, text) = splitOn ':' str
+
+splitOn :: Char -> String -> (String, String)
+splitOn symbol = iter ""
+  where
+    iter :: String -> String -> (String, String)
+    iter acc "" = error "No such symbol"
+    iter acc (x : xs) = if symbol == x then (reverse acc, xs) else iter (x : acc) xs
 
 ------------------------------------------------------------
 -- PROBLEM #24

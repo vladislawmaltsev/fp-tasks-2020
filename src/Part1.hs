@@ -50,7 +50,11 @@ prob2 n = if n `mod` 2 == 1 then n*3 + 1 else n `div` 2
 --
 -- Для любой функции step и n == 1 ответом будет 0.
 prob3 :: (Integer -> Integer) -> Integer -> Integer
-prob3 step n = error "Implement me!"
+prob3 step n = recursive n 0
+  where
+    recursive :: Integer -> Integer -> Integer
+    recursive 1 i = i
+    recursive n i = recursive (step n) (i+1)
 
 
 ------------------------------------------------------------
